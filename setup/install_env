@@ -1,0 +1,14 @@
+#!/bin/bash
+
+sudo apt-get update
+sudo apt-get install python3-pip python3-dev python-virtualenv
+sudo apt-get install libjpeg8-dev zlib1g-dev libncurses-dev
+sudo apt-get install python3-tk
+pip install --upgrade pip
+sudo pip install virtualenv      # This may already be installed
+virtualenv --system-site-packages -p python3 .env       # Create a virtual environment (python3)
+source .env/bin/activate         # Activate the virtual environment
+pip install --upgrade pip
+#wget https://www.dropbox.com/s/madzwcsvvo9zduw/requirements.txt?dl=1
+pip install -r requirements.txt  # Install dependenciesvirtualenv -p python3 env
+pip install --upgrade tensorflow
