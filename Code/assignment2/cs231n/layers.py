@@ -431,7 +431,30 @@ def conv_forward_naive(x, w, b, conv_param):
     # TODO: Implement the convolutional forward pass.                         #
     # Hint: you can use the function np.pad for padding.                      #
     ###########################################################################
-    pass
+    stride = conv_param["stride"]
+    pad = conv_param["pad"]
+
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape
+    outH = int(1 + (H + 2 * pad - HH) / stride)
+    outW = int(1 + (W + 2 * pad - WW) / stride)
+
+    out = np.zeros((N, F, outH, outW))
+    for sample_idx in range(N):
+        for filter_idx in range(F):
+            for row in range(outH):
+                for col in range(outW):
+                    padded_input = np.zeros((C, H+2*pad, W+2*pad))
+                    padded_input[:, pad:pad+H, pad:pad+W] = x[sample_idx]
+
+                    start_row = row * stride
+                    end_row = start_row + HH
+                    start_col = col * stride
+                    end_col = start_col + WW
+
+                    out[sample_idx, filter_idx, row, col] = np.sum(padded_input[:, start_row:end_row, start_col:end_col] * w[filter_idx]) + b[filter_idx]
+
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -456,7 +479,25 @@ def conv_backward_naive(dout, cache):
     ###########################################################################
     # TODO: Implement the convolutional backward pass.                        #
     ###########################################################################
-    pass
+    x, w, b, conv_param = cache
+    print("x_shape : {}, w_shape : {}, b_shape : {}".format(x.shape, w.shape, b.shape))
+    stride = conv_param["stride"]
+    pad = conv_param["pad"]
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape
+    zero_bias = np.zeros_like(b)
+
+    padded_x = np.zeros((N, C, H+2*(HH-1), W+2*(WW-1)))
+    padded_x[:, :, pad:pad+H, pad:pad+W] = x[:, :]
+    print("Padded_x_shape : {}, dout_shape : {}".format(padded_x.shape, dout.shape))
+    dw, _ = conv_forward_naive(padded_x, dout, zero_bias, conv_param={"stride": stride, "pad":pad})
+    db = dout.sum(axis=-1).sum(axis=-1)
+    rotated_w = w[::-1, ::-1]
+    dx, _ = conv_forward_naive(rotated_w, dout, zero_bias, conv_param={"stride": 1, "pad": 0})
+
+    assert(dw.shape == w.shape)
+    assert(db.shape == b.shape)
+    assert(dx.shape == x.shape)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
